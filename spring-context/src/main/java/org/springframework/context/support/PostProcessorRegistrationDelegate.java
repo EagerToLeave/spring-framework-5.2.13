@@ -42,6 +42,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Delegate for AbstractApplicationContext's post-processor handling.
+ * 委托AbstractApplicationContext进行后处理器处理
  *
  * @author Juergen Hoeller
  * @author Sam Brannen
@@ -57,17 +58,26 @@ final class PostProcessorRegistrationDelegate {
 			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {
 
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
+		//如果有的话，首先调用BeanDefinitionRegistryPostProcessors
 		Set<String> processedBeans = new HashSet<>();
-
+		//判断beanFactory是否为BeanDefinitionRegistry实现类
 		if (beanFactory instanceof BeanDefinitionRegistry) {
+			//向上转型为BeanDefinitionRegistry
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+			//初始化一个BeanFactoryPostProcessor集合，用于存放BeanFactoryPostProcessor实现类
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
+			//初始化一个BeanDefinitionRegistryPostProcessor集合，用于存放BeanFactoryPostProcessor实现类
+			//BeanDefinitionRegistryPostProcessor继承BeanFactoryPostProcessor，
+			// 所以registryProcessors有的beanFactory后置处理器在regularPostProcessors中同样存在
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
-
+			//遍历所有的beanFactoryPostProcessors
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
+				//判断当前后置处理器是否为BeanDefinitionRegistryPostProcessor实现类
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
+					//向上转型为BeanDefinitionRegistryPostProcessor
 					BeanDefinitionRegistryPostProcessor registryProcessor =
 							(BeanDefinitionRegistryPostProcessor) postProcessor;
+					//
 					registryProcessor.postProcessBeanDefinitionRegistry(registry);
 					registryProcessors.add(registryProcessor);
 				}

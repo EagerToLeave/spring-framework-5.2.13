@@ -219,6 +219,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 	/**
 	 * Derive further bean definitions from the configuration classes in the registry.
+	 * 从注册表中的配置类派生更多的BeanDefinition
+	 * ##### ConfigurationClassPostProcessor为BeanDefinitionRegistryPostProcessor唯一公用实现类 #####
 	 */
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
@@ -232,7 +234,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					"postProcessBeanFactory already called on this post-processor against " + registry);
 		}
 		this.registriesPostProcessed.add(registryId);
-
+		//此处开始解析BeanDefinition
 		processConfigBeanDefinitions(registry);
 	}
 
@@ -261,19 +263,25 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	/**
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
+	 * 基于Configuration.class的注册表来构建和验证配置模型
 	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
+		//获取IOC容器中所有的beanDefinition名称
 		String[] candidateNames = registry.getBeanDefinitionNames();
-
+		//遍历所有bd名称
 		for (String beanName : candidateNames) {
+			//通过bd.name获取BeanDefinition
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
+			//判断当前beanDefinition是否被解析过
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
+			//判断当前beanDefinition是完全配置类，即是否有@Configuration注解，有的话会设置为full,不是的话则会被标记为little
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
+				//如果是完全配置类，即使用@Configuration注解则添加到候选配置类集合中
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
 			}
 		}

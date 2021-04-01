@@ -170,28 +170,50 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 
 	/**
 	 * Return the (raw) singleton object registered under the given name.
-	 * <p>Checks already instantiated singletons and also allows for an early
-	 * reference to a currently created singleton (resolving a circular reference).
+	 * <p>Checks already instantiated singletons and also allows for an early reference to a currently
+	 * created singleton (resolving a circular reference).
+	 * 返回给定名称注册的（原始）单例对象
+	 * 检查已经实例化的单例，并且还允许对当前创建的单例的早期引用（为了解决循环引用）
 	 * @param beanName the name of the bean to look for
 	 * @param allowEarlyReference whether early references should be created or not
 	 * @return the registered singleton object, or {@code null} if none found
+	 * 		 返回结果可能有多种：
+	 * 		 1)IOC容器第一次加载singleton bean的时候，返回为null
+	 * 		 2)后续再次获取bean时，从singletonObjects(单例池，一般称作一级缓存)中直接获取即可
+	 * 		 3)当单例对象处于循环依赖时，可以从二级缓存中获取一个早期暴露对象，
+	 * 		   此时获取到的对象还尚未完成bean的完整生命周期，故此称为早期对象
+	 *
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		// Quick check for existing instance without full singleton lock
+		//先从单例池中获取所需的bean
 		Object singletonObject = this.singletonObjects.get(beanName);
+		//条件一：判断所需的bean是否存在，如果存在可以直接return，不存在则会继续下一步判断
+		//条件二：判断所需要的bean是否被标记为正在创建中,即检查isSingletonCurrentlyInCreation这个set里面是否包含所需要的bean
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+			//若上述条件一、二都成立，则会从earlySingletonObjects(早期单例对象池，一般称为二级缓存)中查找
 			singletonObject = this.earlySingletonObjects.get(beanName);
+			//如果二级缓存中没有，且allowEarlyReference为true(spring内部固定传参为true，默认支持单例bean循环应用证明之一)
 			if (singletonObject == null && allowEarlyReference) {
 				synchronized (this.singletonObjects) {
 					// Consistent creation of early reference within full singleton lock
+					//再次从单例池中获取所需的bean，如果不为空，说明所需的bean已经完成创建，可以直接return
+					// 个人见解:防止多线程情况下，在同步代码块之前已经有线程完成了所需bean的创建
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
+						//再次获取后还是为空，则会到二级缓存中获取所需的bean，同样也还是在多线程场景下，为了规避重复创建
 						singletonObject = this.earlySingletonObjects.get(beanName);
 						if (singletonObject == null) {
+							//依然为空，则会到三级缓存中进行查找,此时三级缓存会返回一个对象工厂
+							//返回工厂的原因，个人见解:此时bean尚未完成生命周期，后续还会经历后置处理器创建aop代理对象等阶段，
+							// 还需要依靠beanFactory来完成最终创建
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
+								//如果三级缓存中已存在所需要的bean，通过getObject方法获取之前暴露的早期对象
 								singletonObject = singletonFactory.getObject();
+								//将早期对象放入二级缓存，并从三级缓存中移除
+								//why?
 								this.earlySingletonObjects.put(beanName, singletonObject);
 								this.singletonFactories.remove(beanName);
 							}

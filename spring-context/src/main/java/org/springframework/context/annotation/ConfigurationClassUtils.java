@@ -120,11 +120,14 @@ abstract class ConfigurationClassUtils {
 				return false;
 			}
 		}
-
+		//获取元数据中所有使用@Configuration的配置类
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
+		//配置类是否为空且不能有代理对象方法
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
+			//符合上述条件，则将当前bd标记为全配置类(@Configuration -> full)
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		//配置类不为空或
 		else if (config != null || isConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
@@ -150,6 +153,7 @@ abstract class ConfigurationClassUtils {
 	 */
 	public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
 		// Do not consider an interface or an annotation...
+		//如果为接口或者配置类直接返回false
 		if (metadata.isInterface()) {
 			return false;
 		}
