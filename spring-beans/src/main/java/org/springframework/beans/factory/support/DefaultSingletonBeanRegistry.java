@@ -199,7 +199,6 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				synchronized (this.singletonObjects) {
 					// Consistent creation of early reference within full singleton lock
 					//再次从单例池中获取所需的bean，如果不为空，说明所需的bean已经完成创建，可以直接return
-					// 个人见解:防止多线程情况下，在同步代码块之前已经有线程完成了所需bean的创建
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
 						//再次获取后还是为空，则会到二级缓存中获取所需的bean，同样也还是在多线程场景下，为了规避重复创建
@@ -213,7 +212,6 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 								//如果三级缓存中已存在所需要的bean，通过getObject方法获取之前暴露的早期对象
 								singletonObject = singletonFactory.getObject();
 								//将早期对象放入二级缓存，并从三级缓存中移除
-								//why?
 								this.earlySingletonObjects.put(beanName, singletonObject);
 								this.singletonFactories.remove(beanName);
 							}

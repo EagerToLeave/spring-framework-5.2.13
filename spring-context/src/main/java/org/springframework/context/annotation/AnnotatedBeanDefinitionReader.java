@@ -264,12 +264,15 @@ public class AnnotatedBeanDefinitionReader {
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+		// 注册时qualifiers == null
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
+				// 解析@Primary注解
 				if (Primary.class == qualifier) {
 					abd.setPrimary(true);
 				}
 				else if (Lazy.class == qualifier) {
+					// 是否为懒加载
 					abd.setLazyInit(true);
 				}
 				else {

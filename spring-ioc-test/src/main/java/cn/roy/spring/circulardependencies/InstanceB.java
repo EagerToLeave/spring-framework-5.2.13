@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * @author smlz
  * @date 2019/5/29
  */
-@Component
+//@Component
 public class InstanceB {
 
     private InstanceA instanceA;

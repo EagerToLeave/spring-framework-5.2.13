@@ -82,6 +82,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * of a {@code BeanDefinitionRegistry}
 	 */
 	public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry) {
+		// 使用默认的过滤器
 		this(registry, true);
 	}
 
@@ -361,9 +362,12 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * new definition to be skipped in favor of the existing definition
 	 */
 	protected boolean isCompatible(BeanDefinition newDefinition, BeanDefinition existingDefinition) {
-		return (!(existingDefinition instanceof ScannedGenericBeanDefinition) ||  // explicitly registered overriding bean
-				(newDefinition.getSource() != null && newDefinition.getSource().equals(existingDefinition.getSource())) ||  // scanned same file twice
-				newDefinition.equals(existingDefinition));  // scanned equivalent class twice
+				// explicitly registered overriding bean
+		return (!(existingDefinition instanceof ScannedGenericBeanDefinition) ||
+				// scanned same file twice
+				(newDefinition.getSource() != null && newDefinition.getSource().equals(existingDefinition.getSource())) ||
+				// scanned equivalent class twice
+				newDefinition.equals(existingDefinition));
 	}
 
 
